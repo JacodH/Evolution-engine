@@ -1,0 +1,9 @@
+body {
+    overflow: hidden;
+    margin: 0;
+}
+canvas.defaultCanvas0 {
+    position: absolute;
+    top: 0;
+    z-index: -1;
+}

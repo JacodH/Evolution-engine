@@ -1,0 +1,230 @@
+div.tab_holder {
+    position: absolute;
+    z-index: 9;
+    background-color: rgba(226, 226, 226, 0.9);
+    border: 1px solid rgba(0, 0, 0);
+    width: 200px;
+    padding: 0px;
+    overflow-y: scroll;
+    min-width: 100px;
+    width: auto;
+    min-height: 20px;
+    max-height: 100%;
+  }
+  div.tab_holder::-webkit-scrollbar {
+    display: none;
+  }
+  
+  
+  .tab_mover {
+      cursor: move;
+      z-index: 10;
+      height: 20px;
+      background-color: #2196F3;
+      color: #fff;
+      width: 90%;
+      float: left;
+      text-align: center;
+      font-family: 'arial', monospace;
+  }
+  
+  .closeBtn {
+      font-family: 'arial', monospace;
+      width: 10%;
+      height: 20px;
+      background-color: #2196F3;
+      color: red;
+      font-weight: bold;
+      z-index: 10;
+      cursor: pointer;
+      float: right;
+      text-align: center;
+  }
+  
+  .dev {
+      transition: all 0.5s;
+      flex-grow: 1;
+      border: 0.5px solid rgba(0, 0, 0, 0.09);
+      width: 50px;
+  }
+  
+  .container {
+      display: flex;
+      align-items: center;
+      column-gap: 10px;
+  }
+  .container:hover > .dev {
+      border: 0.5px solid rgba(0, 0, 0, 0.25);
+  }
+  
+  .label_left {
+      color: #000000;
+      z-index: 10;
+  }
+
+  .desc_label_left {
+    color: rgba(200, 200, 100);
+    transition: all, 0.25s;
+  }
+  .desc_label_left:hover {
+    background-color: rgba(255, 255, 100);
+    color: rgba(0, 0, 0);
+  }
+
+  
+  .label_right {
+      display: flex;
+      z-index: 10;
+      color: rgba(0, 100, 255)
+      
+  }
+  
+  .labels {
+      font-family: 'arial', monospace;
+      padding: 10px;
+  }
+  
+  hr.line {
+      border: 1px solid rgba(0, 0, 0, 1)
+  }
+  
+  .node {
+      padding-top: 5px;
+      padding-bottom: 10px;
+      margin-bottom: 0px;
+      padding-left: 15px;
+      padding-right: 5px;
+      border-left: 1px dotted rgb(58, 55, 65, 1);
+      border-bottom: 1px dotted rgb(58, 55, 65, 1);
+      transition: all 0.025s;
+  }
+  
+  .node:hover {
+      border-left-style: solid;
+      border-left-width: 1px;
+      border-bottom-style: solid;
+      border-bottom-width: 1px;
+      background-color: rgba(0, 0, 0, 0.025);
+  }
+  
+  .node_title {
+      font-size: larger;
+  }
+  
+  .toggle_node {
+      margin-left: 2.5px;
+      border: 1px dotted black;
+      cursor: pointer;
+      transition: all 0.25s;
+      float: right;
+      width: 22px;
+  }
+  
+  .node_button {
+      margin-top: 2.5px;
+      padding: 5px;
+      border: 1px dotted black;
+      background-color: rgba(210, 210, 210);
+      cursor: pointer;
+      width: 100%;
+  }
+  
+  .node_button:hover {
+      background-color: rgba(240, 240, 240);
+  }
+  
+  .slidecontainer {
+      /* border: 1px dotted rgba(0, 0, 0, 0.5); */
+  }
+  
+  .slider {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 25px;
+      background: rgba(210, 210, 210, 1);
+      outline: none;
+  }
+  
+  .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 10px;
+      height: 25px;
+      background: rgb(152, 177, 234);
+      cursor: pointer;
+  }
+  
+  .sliderRed {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 25px;
+      background: rgba(0, 0, 0, 0.05);
+      outline: none;
+  }
+  
+  .sliderRed::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 10px;
+      height: 25px;
+      background: rgba(244, 133, 129, 0.5);
+      cursor: pointer;
+  }
+  
+  .graph {
+      display: flex;
+      z-index: 10;
+  }
+  
+  .vector {
+      display: flex;
+      z-index: 10;
+      color: rgba(0, 100, 255);
+      border-radius: 35px;
+  }
+  
+  .genome {
+    visibility:visible;
+    z-index: 10;
+    color: rgba(0, 100, 255);
+  }
+  
+  .tabtd {
+      /* border-left: 1px solid black;
+      border-right: 1px solid black; */
+  }
+  .tabtableholder {
+      display: flex;
+  }
+  .tabtable {
+      width: 100%;
+      margin: 0px;
+      border-collapse: collapse;
+  }
+  .tabtd {
+      margin: 0px;
+      padding: 4px;
+      text-align: center;
+      border: 0.5px dotted black;
+  }
+  .tabtr {
+      margin: 0px;
+      background-color: rgb(200, 200, 200, 0.5);
+  }
+  .tabfirsttr {
+      background-color: rgb(20, 130, 223);
+      font-weight: bold;
+      color: white;
+      border: 1px solid black;
+  }
+  .tabtr:nth-child(2n) {
+      background-color: rgb(175, 175, 175, 0.5);
+  }
+  .tabtr:hover {
+      background-color: rgb(150, 150, 150, 0.5);
+  }
+  
+  .tabtable .tabtr .tabtr{
+      resize:horizontal;
+      overflow: auto;
+  }
