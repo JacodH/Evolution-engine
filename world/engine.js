@@ -96,7 +96,7 @@ class Engine {
                 engine = new Engine({
                     org_prod: ui["Organism production_"].val, // every x ticks make a new organism
                     cells_min: 3, // number of cells in each org
-                    cells_max: 7, // number of cells in each org
+                    cells_max: 6, // number of cells in each org
                     food_prod: ui["Food production_"].val, // every x ticks add new food if food.length is under max_food
                     starter_food: ui["Max food_"].val,
                     max_food: ui["Max food_"].val,
