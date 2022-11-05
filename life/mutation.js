@@ -1,7 +1,6 @@
 var bio_mutations = [];
 var neural_mutations = [];
 
-
 function addBioMutation(name, desc, chance, func) {
     bio_mutations.push({
         name: name,
@@ -20,19 +19,95 @@ function addNeuralMutation(name, desc, chance, func) {
     })
 }
 
-addNeuralMutation("Change bias", "Mutate the bias of any neuron", -0.25, () => {})
-addNeuralMutation("Add (+) connection", "Add a positive connection", -0.25, () => {})
-addNeuralMutation("Add (-) connection", "Add a negative connection", -0.25, () => {})
-addNeuralMutation("Remove connection", "Remove a connection", -0.5, () => {})
+addNeuralMutation("Change bias", "Mutate the bias of any neuron", -0.5, (brain) => {
+    let num  = Math.floor(rng(0, brain.nodes.length))
+    brain.nodes[num].bias = clamp(rng(-0.1, 0.1) + brain.nodes[num].bias, NEAT_HP.VALUE.min, NEAT_HP.VALUE.max);
 
-addBioMutation("Change type", "Change the type of a singular cell.", -0.5, () => {})
+    return true;
+})
+addNeuralMutation("Add (+) connection", "Add a positive connection", -0.5, (brain) => {
+    let possible = [];
+
+    for (let i = 0; i < brain.connections.length; i++) {
+        if (brain.connections[i].weight == 0 || brain.connections[i].weight == -1 ) {
+            possible.push(i);
+        }
+    }
+
+    if (possible.length > 0) {
+        brain.connections[possible[Math.floor(rng(0, possible.length))]].weight = 1;
+
+        return true;
+    }
+
+    return false;
+})
+addNeuralMutation("Add (-) connection", "Add a negative connection", -0.5, (brain) => {
+    let possible = [];
+
+    for (let i = 0; i < brain.connections.length; i++) {
+        if (brain.connections[i].weight == 0 || brain.connections[i].weight == 1 ) {
+            possible.push(i);
+        }
+    }
+
+    if (possible.length > 0) {
+        brain.connections[possible[Math.floor(rng(0, possible.length))]].weight = -1;
+
+        return true;
+    }
+
+    return false;
+})
+addNeuralMutation("Zero connection", "Zero a connection", -0.5, (brain) => {
+    let possible = [];
+
+    for (let i = 0; i < brain.connections.length; i++) {
+        if (brain.connections[i].weight == -1 || brain.connections[i].weight == 1 ) {
+            possible.push(i);
+        }
+    }
+
+    if (possible.length > 0) {
+        brain.connections[possible[Math.floor(rng(0, possible.length))]].weight = 0;
+        return true;
+    }
+
+    return false;
+})
+
+addBioMutation("Change type", "Change the type of a singular cell.", 0.1, (org) => {
+    let num = Math.floor(rng(0, org.cells.length));
+    let newType = cell_types[Math.floor(Math.random()*cell_types.length)]
+    org.cells[num].type = newType;
+    org.cells[num].neural_vals = [...cell_type_objects[newType].neurons_default];
+
+    org.initBrain();
+})
+
+addBioMutation("Add cell", "Add a new cell to the organism,", 0.1, (org) => {
+    if (org.cells.length < engine.config.min_cells) {
+
+    }
+})
+
+addBioMutation("Remove cell", "Remove a cell to the organism,", 0.1, (org) => {
+    let num = Math.floor(rng(0, org.bones.length));
+    org.bones[num].a += rng(-Math.PI/5, Math.PI/5)
+})
+
+addBioMutation("Bone structure", "Change the angle of a bone.", 0.25, (org) => {
+    let num = Math.floor(rng(0, org.bones.length));
+    org.bones[num].a += rng(-Math.PI/5, Math.PI/5)
+})
+
 
 function openMutations() {
     let ui = new TabHolder("Mutations");
     ui.add(new Label("Biological Mutations", "Only happens at birth."))
     ui.add(new Table("bio_mutations", ["Name", "Description", "Chance"]))
     for (let i = 0; i < bio_mutations.length; i++) {
-        ui.bio_mutations.addRow([bio_mutations[i].name, bio_mutations[i].desc, `${bio_mutations[i].chance} + N`])
+        ui.bio_mutations.addRow([bio_mutations[i].name, bio_mutations[i].desc, `${bio_mutations[i].chance}`])
     }
 
     ui.add(new Break());
@@ -49,7 +124,7 @@ function openMutations() {
     ui.add(new Break());
     ui.add(new Label("Example", "Neurological Mutation"));
     ui.add(new Slider("Mutation Strength (N)", -1, 1, 0, 0.01, () => {}))
-    let exmaple_holder = new Holder("Example Mutations Output");
+    let exmaple_holder = new Holder("Example Mutations Log");
     ui.add(new Button("Generate example mutation", () => {
         exmaple_holder.clear();
         let n = ui["Mutation Strength (N)"].val;
@@ -62,8 +137,26 @@ function openMutations() {
         }
 
         for (let i = 0; i < mutations.length; i++) {
-            exmaple_holder.add(new Label("Mutation #"+i, `${mutations[i].name} - ${((mutations[i].chance + n)*100).toFixed(0)}%`));
+            exmaple_holder.add(new Label("Mutation #"+(i+1), `${mutations[i].name} - ${((mutations[i].chance + n)*100).toFixed(0)}%`));
         }
     }))
     ui.add(exmaple_holder);
+
+    ui.add(new Break());
+    ui.add(new Label("Example", "Biological Mutation"));
+    let exmaple_holder2 = new Holder("Example Mutations Log");
+    ui.add(new Button("Generate example mutation", () => {
+        exmaple_holder2.clear();
+        let mutations = [];
+        for (let i = 0; i < bio_mutations.length; i++) {
+            if (Math.random() < bio_mutations[i].chance) {
+                mutations.push(bio_mutations[i]);
+            }
+        }
+
+        for (let i = 0; i < mutations.length; i++) {
+            exmaple_holder2.add(new Label("Mutation #"+(i+1), `${mutations[i].name} - ${((mutations[i].chance)*100).toFixed(0)}%`));
+        }
+    }))
+    ui.add(exmaple_holder2);
 }

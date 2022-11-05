@@ -228,3 +228,8 @@ div.tab_holder {
       resize:horizontal;
       overflow: auto;
   }
+
+  .tree {
+    width: 500px;
+    height: 500px;
+  }

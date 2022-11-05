@@ -1,5 +1,5 @@
 class Cell {
-    constructor(id, org, x, y, a = Math.random()*(Math.PI*2)) {
+    constructor(id, org, x, y, a = Math.random()*(Math.PI*2), type) {
         this.id = id;
         this.org = org;
 
@@ -13,9 +13,14 @@ class Cell {
 
         this.friction = 0.95;
 
-        this.type = cell_types[Math.floor(Math.random()*cell_types.length)];
-        this.fired = false;
-        this.neural_vals = [...cell_type_objects[this.type].neurons_default]; // some cell types have multiple neural values
+        if (type) {
+            this.type = type;
+            this.neural_vals = [...cell_type_objects[this.type].neurons_default];
+        }else {
+            this.type = cell_types[Math.floor(Math.random()*cell_types.length)];
+            this.neural_vals = [...cell_type_objects[this.type].neurons_default];
+        }
+
         this.brain_index = 0;
 
         this.ui = undefined;
@@ -36,16 +41,8 @@ class Cell {
         this.org.energy -= cell_type_objects[this.type].energy_cost;
         cell_type_objects[this.type].update(this);
 
-        if (this.type != "Plant") {
-            for (let i = 0; i < engine.food.length; i++) {
-                let d = dist(engine.food[i].x, engine.food[i].y, this.x, this.y);
-                if (d < 22) {
-                    engine.food.splice(i, 1);
-                    this.org.energy += 0.5;
-                    return
-                }
-            }
-        }
+
+        this.updateUI();
 
     }
 
@@ -67,8 +64,6 @@ class Cell {
         }
 
         cell_type_objects[this.type].render(this);
-
-        this.updateUI();
     }
 
     applyForce(x, y) {
@@ -117,7 +112,14 @@ class Cell {
 
         ui.add(neural_holder)
 
-        ui.setPos(mouseX + (Math.cos(this.a) * 300), mouseY + (Math.sin(this.a) * 300))
+        let x = ((innerWidth/10)*2);
+        let y = ((innerHeight/10)*8.5);
+
+        let dx = 300
+
+        x += dx * this.id;
+
+        ui.setPos(x, y)
 
         this.ui = ui;
     }
