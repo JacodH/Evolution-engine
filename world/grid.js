@@ -14,14 +14,8 @@ class FoodGrid {
         this.height = n*this.cz;
         this.width = n*this.cz;
         this.debug = false;
-    }
 
-    get length() {
-        let sum = 0;
-        for (let i = 0; i < this.grid.length; i++) {
-            sum += this.grid[i].length;
-        }
-        return sum;
+        this.length = 0;
     }
 
     renderGrid() {
@@ -51,6 +45,7 @@ class FoodGrid {
     addFood(food) {
         let cell = this.getCell(food.x, food.y);
         cell.push(food);
+        this.length += 1;
     }
 
     getAll(x, y) {

@@ -7,7 +7,7 @@ class Food {
     }
     render() {
         fill(0, 255, 100);
-        stroke(0, 0, 0, 255);
+        stroke(0, 255, 0, 255);
         ellipse(this.x, this.y, 10, 10);
     }
 }

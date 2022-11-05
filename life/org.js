@@ -1,4 +1,4 @@
-const MAX_KIDS = 10;
+const MAX_KIDS = 3;
 const MAX_AGE = 25_000;
 const MATURITY_AGE = 1_500
 

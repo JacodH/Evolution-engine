@@ -23,17 +23,99 @@ class Engine {
     }
 
     init() {
+        if (ui != undefined) {
+            ui.close();
+            ui = undefined;
+        }
+
+        
         this.organisms = [];
         for (let i = 0; i < this.config.organisms; i++) {
             this.addOrganism()
         }
-
+        
         this.foodGrid = new FoodGrid(this.config.radius/50);
         for (let i = 0; i < this.config.starter_food; i++) {
             this.addFood()
         }
-    }
+    
+        ui = new TabHolder("Main", false);
+        let main = new Holder("Main");
+        main.add(new Break());
+        main.add(new Label("Organisms", 0))
+        main.add(new Slider("Food", 0, this.config.max_food, this.foodGrid.length, 1));
 
+        main.add(new Button("Open Tree (NEW!)", () => {
+            tree = new TabHolder("Tree");
+            tree.add(new Tree("Evolution tree", this.organism_tree))
+        }))
+        main.add(new Label("Ticks", "0.00k"))
+        main.add(new Label("Ticks per second", 0))
+        
+        let controls = new Holder("Controls");
+        controls.add(new Slider("Speed", 1, 500, 1, 1, (val) => {
+            this.speed = val;
+        }));
+        controls.add(new Button("Toggle Pause", () => {
+            this.paused = !this.paused
+        }));
+        controls.add(new Button("Toggle Rendering", () => {
+            this.rendering = !this.rendering
+        }));
+        controls.add(new Button("Go to center", () => {
+            cam.x = 0;
+            cam.y = 0;
+        }));
+        
+        main.add(controls)
+        ui.add(main)
+        
+        let about = new Holder("About / Help");
+        about.add(new Label("Camera", "Click and drag to move the camera\nscroll to zoom in and out."))
+        about.add(new Label("Selection", "Click on an organism to open \nits UI."))
+        about.add(new Label("Reading", "If a label is yellow, hover over it.", "This normally holds a bit more information about the variable."))
+        about.add(new Button("Mutation Helper", openMutations))
+        about.collapse();
+        ui.add(about)
+        
+        let rebirth = new Holder("Rebirth"); //name, min, max, val, step, onChange
+        rebirth.add(new Button("Open rebirth controls", () => {
+            let ui = new TabHolder("Rebirth controls")
+        
+            ui.add(new Label("Organism production", "Every (x) frames make\na new random organism."))
+            ui.add(new Slider("Organism production_", 100, 10000, this.config.org_prod, 1, () => {}));
+            
+            ui.add(new Label("Food production", "Every (x) frames make a\nnew food pelet if the current\nammount of food is under the max."))
+            ui.add(new Slider("Food production_", 1, 1000, this.config.food_prod, 1, () => {}));
+            
+            ui.add(new Slider("Max food_", 10, 7000, this.config.max_food, 1, () => {}));
+            
+            ui.add(new Slider("Radius_", 100, 10000, this.config.radius, 50, () => {}));
+            
+            ui.add(new Button("Rebirth", () => {
+                engine = new Engine({
+                    org_prod: ui["Organism production_"].val, // every x ticks make a new organism
+                    cells_min: 3, // number of cells in each org
+                    cells_max: 7, // number of cells in each org
+                    food_prod: ui["Food production_"].val, // every x ticks add new food if food.length is under max_food
+                    starter_food: ui["Max food_"].val,
+                    max_food: ui["Max food_"].val,
+                    radius: ui["Radius_"].val
+                });
+                ui.close();
+                engine.init()
+            }))
+        }))
+        rebirth.collapse()
+        ui.add(rebirth)
+        
+        let contact = new Holder("Contact me")
+        contact.add(new Label("Contact", "If you have any suggestions\nat all feel free to Gmail\nme. Your recommendation will be\nread! Also Gmail me if you\nhappen to see any misspellings"))
+        contact.add(new Label("Gmail", "haleyjacob772@gmail.com"))
+        contact.collapse()
+        ui.add(contact);
+    }
+    
     addOrganism(organism){
         if (organism == undefined) {
             let a = Math.random()*(Math.PI*2)
@@ -164,8 +246,10 @@ class Engine {
 
         }
 
-        ui.Main.Ticks.changeVal(this.ticks)
+        ui.Main["Ticks"].changeVal(`${(this.ticks/1000).toFixed(2)}k`)
         ui.Main["Ticks per second"].changeVal(((frameRate() * this.speed) / 1).toFixed())
+        ui.Main.Organisms.changeVal(engine.organisms.length)
+        ui.Main.Food.changeVal(engine.foodGrid.length)
     }
 
     click() {

@@ -133,6 +133,7 @@ var cell_type_objects = {
                 for (let f = 0; f < food[c].length; f++) {
                     if (dist(cell.x, cell.y, food[c][f].x, food[c][f].y) < 28) {
                         food[c].splice(f, 1);
+                        engine.foodGrid.length -= 1;
                         cell.org.energy += 0.5;
                         return
                     }
