@@ -39,10 +39,6 @@ var cell_type_objects = {
         "render": (cell) => {
             push();
 
-            // stroke()
-            let a1 = cell.neural_vals[0];
-            let a2 = cell.a;
-
             translate(cell.x, cell.y);
             line(Math.cos(cell.a) * 16, Math.sin(cell.a) * 16, Math.cos(cell.a) * 10, Math.sin(cell.a) * 10)
 
@@ -61,10 +57,15 @@ var cell_type_objects = {
         "color": [79, 87, 204],
         "update": (cell) => {
 
-            let food = engine.foodGrid.getAll(cell.x, cell.y);
+            let foodCells = []
+            foodCells.push(...engine.foodGrid.getAll(cell.x - 300, cell.y))
+            foodCells.push(...engine.foodGrid.getAll(cell.x + 300, cell.y))
+            foodCells.push(...engine.foodGrid.getAll(cell.x, cell.y))
+            foodCells.push(...engine.foodGrid.getAll(cell.x, cell.y - 300))
+            foodCells.push(...engine.foodGrid.getAll(cell.x, cell.y + 300))
             let all = []
-            for (let c = 0; c < food.length; c++) {
-                all.push(...food[c]);
+            for (let c = 0; c < foodCells.length; c++) {
+                all.push(...foodCells[c]);
             }
 
             // Find nearest object
@@ -91,16 +92,8 @@ var cell_type_objects = {
                 return Math.atan2(p2.y - p1.y, p2.x - p1.x);
             }
 
-            // this code is absolutely disgusting i am soooo sorry
-            // im so bad at rotation even in the real world just visualzing it its a struggle
-
             let pelet = all[closest]
-            // cell.neural_vals[0] = closestD/1000;
             let a = getAngleRad(cell, pelet)
-            // let a = getAngleRad(cell, {x: cam.mx, y: cam.my})
-            // a = Math.abs(a+(Math.PI*1)) % (Math.PI*2)
-
-            // cell.neural_vals[1] = a - cell.a;
 
             let x = Math.cos(a - cell.a);
             let y = Math.sin(a - cell.a);
@@ -134,7 +127,7 @@ var cell_type_objects = {
                     if (dist(cell.x, cell.y, food[c][f].x, food[c][f].y) < 28) {
                         food[c].splice(f, 1);
                         engine.foodGrid.length -= 1;
-                        cell.org.energy += 0.5;
+                        cell.org.energy += 0.75;
                         return
                     }
                 }

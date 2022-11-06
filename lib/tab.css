@@ -63,11 +63,11 @@ div.tab_holder {
   }
 
   .desc_label_left {
-    color: rgba(200, 200, 100);
+    color: rgb(247, 143, 143);
     transition: all, 0.25s;
   }
   .desc_label_left:hover {
-    background-color: rgba(255, 255, 100);
+    background-color: rgb(247, 143, 143);
     color: rgba(0, 0, 0);
   }
 
@@ -232,4 +232,5 @@ div.tab_holder {
   .tree {
     width: 500px;
     height: 500px;
+    overflow: none;
   }

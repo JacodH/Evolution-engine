@@ -1,5 +1,3 @@
-const MIN_LIFE = 3;
-
 class Engine {
     constructor(config) {
         this.config = config
@@ -9,10 +7,8 @@ class Engine {
 
         this.organism_tree = {
             "text": "INIT",
-            "children": [],
-            "onclick": () => {
-                console.log("INIT")
-            }
+            "org": undefined,
+            "children": []
         };
 
         this.selected = undefined;
@@ -45,15 +41,15 @@ class Engine {
         main.add(new Label("Organisms", 0))
         main.add(new Slider("Food", 0, this.config.max_food, this.foodGrid.length, 1));
 
-        main.add(new Button("Open Tree (NEW!)", () => {
-            tree = new TabHolder("Tree");
-            tree.add(new Tree("Evolution tree", this.organism_tree))
-        }))
+        tree = new TabHolder("Evolution Tree (NEW!)", false);
+        tree.add(new Tree("Evolution tree", this.organism_tree))
+        tree.setPos((innerWidth/10)*8, 300)
+
         main.add(new Label("Ticks", "0.00k"))
         main.add(new Label("Ticks per second", 0))
         
         let controls = new Holder("Controls");
-        controls.add(new Slider("Speed", 1, 500, 1, 1, (val) => {
+        controls.add(new Slider("Speed", 1, 1000, 1, 1, (val) => {
             this.speed = val;
         }));
         controls.add(new Button("Toggle Pause", () => {
@@ -67,6 +63,9 @@ class Engine {
             cam.y = 0;
         }));
         
+        controls.collapse()
+        controls.collapse()
+
         main.add(controls)
         ui.add(main)
         
@@ -78,7 +77,7 @@ class Engine {
         about.collapse();
         ui.add(about)
         
-        let rebirth = new Holder("Rebirth"); //name, min, max, val, step, onChange
+        let rebirth = new Holder("Rebirth");
         rebirth.add(new Button("Open rebirth controls", () => {
             let ui = new TabHolder("Rebirth controls")
         
@@ -86,7 +85,7 @@ class Engine {
             ui.add(new Slider("Organism production_", 100, 10000, this.config.org_prod, 1, () => {}));
             
             ui.add(new Label("Food production", "Every (x) frames make a\nnew food pelet if the current\nammount of food is under the max."))
-            ui.add(new Slider("Food production_", 1, 1000, this.config.food_prod, 1, () => {}));
+            ui.add(new Slider("Food production_", 1, 10000, this.config.food_prod, 1, () => {}));
             
             ui.add(new Slider("Max food_", 10, 7000, this.config.max_food, 1, () => {}));
             
@@ -103,6 +102,7 @@ class Engine {
                     radius: ui["Radius_"].val
                 });
                 ui.close();
+                tree.close();
                 engine.init()
             }))
         }))
@@ -128,10 +128,9 @@ class Engine {
             this.organism_tree.children.push({
                 "text": org.id,
                 "children": [],
-                "onclick": () => {
-                    org.openUI();
-                }
+                "org": org
             });
+            this.updateTree()
         }else {
             organism.id = this.next_org_id;
             this.next_org_id += 1;
@@ -142,7 +141,7 @@ class Engine {
                 parent = (organism.ancestry[organism.ancestry.length-1])
                 
                 Find where the parent of this organism is.
-                Then add the org to one of its children
+                Then add the org to the parents child array
             */
 
             let parent = (organism.ancestry[organism.ancestry.length-1])
@@ -157,9 +156,7 @@ class Engine {
                     n.children.push({
                         "text": organism.id,
                         "children": [],
-                        "onclick": () => {
-                            organism.openUI();
-                        }
+                        "org": organism
                     })
                     this.updateTree()
                     return
@@ -171,9 +168,7 @@ class Engine {
                         child.children.push({
                             "text": organism.id,
                             "children": [],
-                            "onclick": () => {
-                                organism.openUI();
-                            }
+                            "org": organism
                         })
                         this.updateTree()
                         return
@@ -188,6 +183,13 @@ class Engine {
 
     updateTree() {
         if (tree != undefined) {
+            for (let i = 0; i < this.organism_tree.children.length; i++) {
+                if (this.organism_tree.children[i].org.alive == false && this.organism_tree.children[i].children.length == 0) {
+                    this.organism_tree.children.splice(i, 1);
+                    i-=1;
+                }
+            }
+
             tree['Evolution tree'].changeVal(this.organism_tree)
         }
     }
@@ -196,8 +198,6 @@ class Engine {
         if (x == undefined) {
 
             let a = Math.random()*(Math.PI*2)
-            // let d = randomGaussian(0, 1.5)
-            // d *= this.config.radius;
             let d = Math.random()
             d *= this.config.radius;
 
@@ -224,9 +224,6 @@ class Engine {
     update() {
         if (this.paused == true) {return}
         
-        // if (this.organisms.length < MIN_LIFE) {
-        //     this.addOrganism()
-        // }
 
         for (let s = 0; s < this.speed; s++) {
             this.ticks += 1;
@@ -253,6 +250,7 @@ class Engine {
     }
 
     click() {
+        if (overTab == true) {return}
         if (this.selected == undefined) {
 
             for (let i = 0; i < this.organisms.length; i++) {

@@ -54,7 +54,6 @@ class Cell {
             stroke(0, 0, 0, 255)
         }
         ellipse(this.x, this.y, 32, 32);
-        // line(this.x + Math.cos(this.a) * 16, this.y + Math.sin(this.a) * 16, this.x + Math.cos(this.a) * 10, this.y + Math.sin(this.a) * 10)
 
         if (cell_type_objects[this.type].neuron_type == "Input") {
             line(this.x - 3, this.y, this.x + 3, this.y);
@@ -64,6 +63,11 @@ class Cell {
         }
 
         cell_type_objects[this.type].render(this);
+
+        if (this.ui == undefined) { return }
+
+        stroke(cell_type_objects[this.type].color, 255)
+        line(this.x, this.y, cam.camX(this.ui.ele.offsetLeft), cam.camY(this.ui.ele.offsetTop))
     }
 
     applyForce(x, y) {
@@ -127,9 +131,6 @@ class Cell {
     updateUI() {
         if (this.ui == undefined) { return }
 
-        stroke(cell_type_objects[this.type].color, 255)
-        line(this.x, this.y, cam.camX(this.ui.ele.offsetLeft), cam.camY(this.ui.ele.offsetTop))
-
         for (let i = 0; i < cell_type_objects[this.type].neurons.length; i++) {
             this.ui["Neural values"][`${cell_type_objects[this.type].neurons[i]}[${i+this.brain_index}]`].changeVal(this.neural_vals[i])
         }
@@ -139,6 +140,10 @@ class Cell {
         if (this.ui == undefined) { return }
         this.ui.close();
         this.ui = undefined;
+    }
+    
+    copy() {
+        return new Cell(this.id, this.org, this.x, this.y, this.a, this.type);
     }
 }
 

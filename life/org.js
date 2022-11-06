@@ -1,6 +1,6 @@
-const MAX_KIDS = 3;
-const MAX_AGE = 25_000;
-const MATURITY_AGE = 1_500
+const MAX_KIDS = 10;
+const MAX_AGE = 100_000;
+const MATURITY_AGE = 30_500
 
 class Organism {
     constructor(n, x, y) {
@@ -18,7 +18,7 @@ class Organism {
 
         this.children = 0;
 
-        this.brain_mutation_rate = 7500;
+        this.brain_mutation_rate = 25000;
         this.brain_timer = 0;
 
         this.brain_energy_last = this.energy;        
@@ -63,7 +63,6 @@ class Organism {
             this.ancestry.push(x.id)
 
             // mutate this biololgically.
-
             for (let i = 0; i < bio_mutations.length; i++) {
                 for (let i = 0; i < bio_mutations.length; i++) {
                     if (Math.random() < bio_mutations[i].chance) {
@@ -102,8 +101,6 @@ class Organism {
                 }
 
                 inputs.push(...inp)
-
-                // inputs.push(...cell_type_objects[this.cells[i].type].neurons)
             }
         }
         for (let i = 0; i < this.cells.length; i++) {
@@ -151,21 +148,20 @@ class Organism {
                 engine.organisms.splice(i, 1)
             }
         }
+
+        engine.updateTree();
     }
 
     lay() {
         if (this.children < MAX_KIDS) {
             this.children += 1;
-            let a = Math.random()*(Math.PI*2)
             engine.addOrganism(new Organism("Copy", this))
         }
     }
 
     mutate_brain() {
         /*
-        
-            The brain will mutate more if the energy gained is negative
-
+            The brain will mutate more if the energy change is negative
         */
 
         let energy_change = (this.energy - this.brain_energy_last) + (this.health - this.brain_health_last);
@@ -197,9 +193,8 @@ class Organism {
             this.die();
         }
 
-        if (this.energy > (this.cells.length/10)*8 && this.children < MAX_KIDS && this.age > MATURITY_AGE) {
+        if (this.energy > this.cells.length/2 && this.children < MAX_KIDS && this.age > (MATURITY_AGE * (this.children+1))) {
             this.lay();
-            this.energy = 1;
         }
 
         this.brain_timer += 1;
@@ -281,7 +276,7 @@ class Organism {
     }
 
     timeAlive() {
-        return `${(this.death || engine.ticks - this.birthdate).toFixed(2) / 1000}k` // how many TPS this org was alive
+        return `${(this.death || engine.ticks - this.birthdate).toFixed(2) / 1000}k` // how thousand TPS this org was alive
     }
 
     openUI() {
@@ -311,93 +306,80 @@ class Organism {
         stats.collapse();
         ui.add(stats);
 
-        // if (this.alive == false) {
-            
-            ui.add(new Canvas("Anatomy", (p, org = this) => {
-                p.setup = function() {
-                    p.createCanvas(350, 150);
+        ui.add(new Canvas("Anatomy", (p, org = this) => {
+            p.setup = function() {
+                p.createCanvas(350, 150);
 
-                    // p.background(100, 120, 120)
-                    p.translate(p.width/2, p.height/2)
+                p.translate(p.width/2, p.height/2)
 
-                    let cells = structuredClone(org.cells);
-                    let bones = structuredClone(org.bones);
+                let cells = structuredClone(org.cells);
+                let bones = structuredClone(org.bones);
 
-                    for (let i = 0; i < cells.length; i++) {
-                        cells[i].x = rng(-10, 10);
-                        cells[i].y = rng(-10, 10);
-                    }
-
-                    function getCell(id) {
-                        for (let i = 0; i < cells.length; i++) {
-                            if (cells[i].id == id) {
-                                return cells[i];
-                            }
-                        }
-                    }
-
-
-                    for (let t = 0; t < cells.length; t++) {
-                        for (let i = 0; i < bones.length; i++) {
-                            let bone = bones[i];
-                            // bone.update();
-    
-                            bone.a += bone.da;
-                            bone.a = bone.a % (Math.PI*2)
-    
-                            bone.da *= 0.9;
-                
-                            let c1 = getCell(bone.c1);
-                            let c2 = getCell(bone.c2);
-                
-                            let d = bone.d;
-                            let a = bone.a;
-                
-                            let midx = (c1.x + c2.x) / 2
-                            let midy = (c1.y + c2.y) / 2
-                
-                            let wantedc1x = midx + (Math.cos(a) * (d/2));
-                            let wantedc1y = midy + (Math.sin(a) * (d/2));
-                
-                            c1.x = wantedc1x
-                            c1.y = wantedc1y
-                
-                            let wantedc1x2 = midx + (Math.cos(a+Math.PI) * (d/2));
-                            let wantedc1y2 = midy + (Math.sin(a+Math.PI) * (d/2));
-                
-                            c2.x = wantedc1x2
-                            c2.y = wantedc1y2
-                        }
-                    }
-            
-                    for (let i = 0; i < cells.length; i++) {
-                        p.fill(cell_type_objects[cells[i].type].color);
-                        p.ellipse(cells[i].x, cells[i].y, 32, 32);
-
-                        if (cell_type_objects[cells[i].type].neuron_type == "Input") {
-                            p.line(cells[i].x - 3, cells[i].y, cells[i].x + 3, cells[i].y);
-                            p.line(cells[i].x, cells[i].y-3, cells[i].x, cells[i].y+3);
-                        }else if (cell_type_objects[cells[i].type].neuron_type == "Output") {
-                            p.line(cells[i].x - 3, cells[i].y, cells[i].x + 3, cells[i].y);
-                        }
-                    }
-
+                for (let i = 0; i < cells.length; i++) {
+                    cells[i].x = rng(-10, 10);
+                    cells[i].y = rng(-10, 10);
                 }
-            }))
 
-        // }
+                function getCell(id) {
+                    for (let i = 0; i < cells.length; i++) {
+                        if (cells[i].id == id) {
+                            return cells[i];
+                        }
+                    }
+                }
+
+
+                for (let t = 0; t < cells.length; t++) {
+                    for (let i = 0; i < bones.length; i++) {
+                        let bone = bones[i];
+
+                        bone.a += bone.da;
+                        bone.a = bone.a % (Math.PI*2)
+
+                        bone.da *= 0.9;
+            
+                        let c1 = getCell(bone.c1);
+                        let c2 = getCell(bone.c2);
+            
+                        let d = bone.d;
+                        let a = bone.a;
+            
+                        let midx = (c1.x + c2.x) / 2
+                        let midy = (c1.y + c2.y) / 2
+            
+                        let wantedc1x = midx + (Math.cos(a) * (d/2));
+                        let wantedc1y = midy + (Math.sin(a) * (d/2));
+            
+                        c1.x = wantedc1x
+                        c1.y = wantedc1y
+            
+                        let wantedc1x2 = midx + (Math.cos(a+Math.PI) * (d/2));
+                        let wantedc1y2 = midy + (Math.sin(a+Math.PI) * (d/2));
+            
+                        c2.x = wantedc1x2
+                        c2.y = wantedc1y2
+                    }
+                }
+        
+                for (let i = 0; i < cells.length; i++) {
+                    p.fill(cell_type_objects[cells[i].type].color);
+                    p.ellipse(cells[i].x, cells[i].y, 32, 32);
+
+                    if (cell_type_objects[cells[i].type].neuron_type == "Input") {
+                        p.line(cells[i].x - 3, cells[i].y, cells[i].x + 3, cells[i].y);
+                        p.line(cells[i].x, cells[i].y-3, cells[i].x, cells[i].y+3);
+                    }else if (cell_type_objects[cells[i].type].neuron_type == "Output") {
+                        p.line(cells[i].x - 3, cells[i].y, cells[i].x + 3, cells[i].y);
+                    }
+                }
+
+            }
+        }))
 
         ui.add(new Button("Open Brain", () => {
             this.brain.openUI()
         }))
         if (this.alive == true) {
-            ui.add(new Button("Kill", () => {
-                this.health = 0;
-                this.energy = 0;
-            }))
-            ui.add(new Button("Lay", () => {
-                this.lay();
-            }))
             ui.add(new Button("Feed", () => {
                 this.energy += 0.75;
             }))
@@ -424,7 +406,10 @@ class Organism {
         this.ui.Stats["Brain timer"].changeVal(this.brain_timer);
         this.ui.Stats["Energy last"].changeVal(this.brain_energy_last);
         this.ui.Stats["Effiency Diff"].changeVal((this.energy - this.brain_energy_last) + (this.health - this.brain_health_last));
-        cam.goto(this.cells[0].x, this.cells[0].y)
+        
+        if (engine.selected != undefined && engine.selected.id == this.id) {
+            cam.goto(this.cells[0].x, this.cells[0].y)
+        }
     }
 
     closeUI() {

@@ -85,17 +85,6 @@ addBioMutation("Change type", "Change the type of a singular cell.", 0.1, (org) 
     org.initBrain();
 })
 
-addBioMutation("Add cell", "Add a new cell to the organism,", 0.1, (org) => {
-    if (org.cells.length < engine.config.min_cells) {
-
-    }
-})
-
-addBioMutation("Remove cell", "Remove a cell to the organism,", 0.1, (org) => {
-    let num = Math.floor(rng(0, org.bones.length));
-    org.bones[num].a += rng(-Math.PI/5, Math.PI/5)
-})
-
 addBioMutation("Bone structure", "Change the angle of a bone.", 0.25, (org) => {
     let num = Math.floor(rng(0, org.bones.length));
     org.bones[num].a += rng(-Math.PI/5, Math.PI/5)
