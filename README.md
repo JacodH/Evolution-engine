@@ -1,9 +1,9 @@
 # Evolution-engine
 # Description
-The evolution engine (may change the name) is a program that allows you to watch artificial [organisms](Organism) [evolve](Evolution) inside of your browser. 
+The evolution engine (may change the name) is a program that allows you to watch artificial organisms inside of your browser. 
 
 ## Organism
-Organisms are made up of [cells](Cells). Cells have are connected via bones to form a body. The organism can mutate its brain to more efficiently collect food pellets.
+Organisms are made up of cells. Cells have are connected via bones to form a body. The organism can mutate its brain to more efficiently collect food pellets.
 
 ## Cells
 Cells take some energy and also have special qualities dependent on its type.
