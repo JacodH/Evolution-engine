@@ -15,6 +15,8 @@ class Engine {
 
         this.paused = false;
         this.rendering = true;
+        this.pure_speed = false;
+        this.pure_speed_warning = undefined;
         this.speed = 1;
     }
 
@@ -42,7 +44,8 @@ class Engine {
         main.add(new Slider("Food", 0, this.config.max_food, this.foodGrid.length, 1));
 
         tree = new TabHolder("Evolution Tree (NEW!)", false);
-        tree.add(new Tree("Evolution tree", this.organism_tree))
+        tree.add(new Holder("Tree"))
+        tree.Tree.add(new Tree("Evolution tree", this.organism_tree))
         tree.setPos((innerWidth/10)*8, 300)
 
         main.add(new Label("Ticks", "0.00k"))
@@ -114,58 +117,48 @@ class Engine {
         contact.add(new Label("Gmail", "haleyjacob772@gmail.com"))
         contact.collapse()
         ui.add(contact);
+    
     }
     
     addOrganism(organism){
-        if (organism == undefined) {
-            let a = Math.random()*(Math.PI*2)
-            let org = new Organism(rng(this.config.cells_min, this.config.cells_max), Math.cos(a)*(Math.random()*this.config.radius), Math.sin(a)*(Math.random()*this.config.radius))
-        
-            org.id = this.next_org_id;
-            this.next_org_id += 1;
-
-            this.organisms.push(org)
-            this.organism_tree.children.push({
-                "text": org.id,
-                "children": [],
-                "org": org
-            });
-            this.updateTree()
-        }else {
-            organism.id = this.next_org_id;
-            this.next_org_id += 1;
-
-            this.organisms.push(organism);
-
-            /*
-                parent = (organism.ancestry[organism.ancestry.length-1])
-                
-                Find where the parent of this organism is.
-                Then add the org to the parents child array
-            */
-
-            let parent = (organism.ancestry[organism.ancestry.length-1])
-
-            let queue = [...this.organism_tree.children]
-
-            while (queue.length > 0) {
-
-                let n = queue.shift();
-
-                if (n.text == parent) {
-                    n.children.push({
-                        "text": organism.id,
-                        "children": [],
-                        "org": organism
-                    })
-                    this.updateTree()
-                    return
-                }
-                
-                for (let child of n.children) {
+        executeAsync(() => {
+            if (organism == undefined) {
+                let a = Math.random()*(Math.PI*2)
+                let org = new Organism(rng(this.config.cells_min, this.config.cells_max), Math.cos(a)*(Math.random()*this.config.radius), Math.sin(a)*(Math.random()*this.config.radius))
+            
+                org.id = this.next_org_id;
+                this.next_org_id += 1;
+    
+                this.organisms.push(org)
+                this.organism_tree.children.push({
+                    "text": org.id,
+                    "children": [],
+                    "org": org
+                });
+                this.updateTree()
+            }else {
+                organism.id = this.next_org_id;
+                this.next_org_id += 1;
+    
+                this.organisms.push(organism);
+    
+                /*
+                    parent = (organism.ancestry[organism.ancestry.length-1])
                     
-                    if (child.text == parent) {
-                        child.children.push({
+                    Find where the parent of this organism is.
+                    Then add the org to the parents child array
+                */
+    
+                let parent = (organism.ancestry[organism.ancestry.length-1])
+    
+                let queue = [...this.organism_tree.children]
+    
+                while (queue.length > 0) {
+    
+                    let n = queue.shift();
+    
+                    if (n.text == parent) {
+                        n.children.push({
                             "text": organism.id,
                             "children": [],
                             "org": organism
@@ -173,12 +166,25 @@ class Engine {
                         this.updateTree()
                         return
                     }
-
-                    queue.push(child);
-
+                    
+                    for (let child of n.children) {
+                        
+                        if (child.text == parent) {
+                            child.children.push({
+                                "text": organism.id,
+                                "children": [],
+                                "org": organism
+                            })
+                            this.updateTree()
+                            return
+                        }
+    
+                        queue.push(child);
+    
+                    }
                 }
             }
-        }
+        })
     }
 
     updateTree() {
@@ -190,7 +196,7 @@ class Engine {
                 }
             }
 
-            tree['Evolution tree'].changeVal(this.organism_tree)
+            tree.Tree['Evolution tree'].changeVal(this.organism_tree)
         }
     }
 
@@ -209,7 +215,7 @@ class Engine {
     }
 
     render() {
-        if (this.rendering == false) {return}
+        if (this.rendering == false || this.pure_speed == true) {return}
 
         // fill(0, 0, 100, 100)
         // ellipse(0, 0, this.config.radius*2);
@@ -243,10 +249,14 @@ class Engine {
 
         }
 
-        ui.Main["Ticks"].changeVal(`${(this.ticks/1000).toFixed(2)}k`)
-        ui.Main["Ticks per second"].changeVal(((frameRate() * this.speed) / 1).toFixed())
-        ui.Main.Organisms.changeVal(engine.organisms.length)
-        ui.Main.Food.changeVal(engine.foodGrid.length)
+        if (this.pure_speed == false) {
+            ui.Main["Ticks"].changeVal(`${(this.ticks/1000).toFixed(2)}k`)
+            ui.Main["Ticks per second"].changeVal(((frameRate() * this.speed) / 1).toFixed())
+            ui.Main.Organisms.changeVal(engine.organisms.length)
+            ui.Main.Food.changeVal(engine.foodGrid.length)
+        }else {
+            this.pure_speed_warning["Ticks per second"].changeVal(((frameRate() * this.speed) / 1).toFixed())
+        }
     }
 
     click() {

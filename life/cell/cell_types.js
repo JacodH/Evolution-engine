@@ -1,5 +1,6 @@
 var cell_types = ["Mover", "Rotater", "Eye", "Mouth"];
-var cell_energy_needed = 0.00033;
+
+var energy_cost = 0.00001;
 
 var cell_type_objects = {
     "Mover": {
@@ -7,10 +8,12 @@ var cell_type_objects = {
         "neurons": ["Speed"], // the speed it moves at
         "desc": "The Mover cell moves at\na neurologically determined\nspeed at it's specified drection",
         "neurons_default": [0],
-        "energy_cost": 0.00002,
+        "energy_cost": (cell) => {
+            return map(clamp(cell.neural_vals[0], 0, 1), 0, 1, energy_cost, 0.0001, true)
+        },
         "color": [0, 100, 255],
         "update": (cell) => {
-            cell.move(Math.abs(cell.neural_vals[0]) * 6);
+            cell.move(clamp(cell.neural_vals[0], 0, 1) * 6);
         },
         "render": (cell) => {
             push();
@@ -24,7 +27,9 @@ var cell_type_objects = {
         "neurons": ["Angle"],
         "desc": "The Rotater cell rotates at\na neurologically determined angle.",
         "neurons_default": [0],
-        "energy_cost": 0.00002,
+        "energy_cost": (cell) => {
+            return map(Math.abs(cell.neural_vals[0]), 0, 2, energy_cost, 0.0001)
+        },
         "color": [255, 100, 100],
         "update": (cell) => {
             for (let i = 0; i < cell.org.bones.length; i++) {
@@ -40,11 +45,12 @@ var cell_type_objects = {
             push();
 
             translate(cell.x, cell.y);
-            line(Math.cos(cell.a) * 16, Math.sin(cell.a) * 16, Math.cos(cell.a) * 10, Math.sin(cell.a) * 10)
+            let a1 = cell.neural_vals[0];
+            let a2 = cell.a;
+            
+            line(Math.cos(cell.a) * 10, Math.sin(cell.a) * 10, Math.cos(cell.a) * 16, Math.sin(cell.a) * 16)
 
-            rotate(cell.a)
-            line(cell.neural_vals[0] * 8, cell.neural_vals[1] * 8, cell.neural_vals[0] * 5, cell.neural_vals[1] * 5)
-
+            line((cos(a1 + a2) * 4), (sin(a1 + a2) * 4), (cos(a1 + a2) * 10), (sin(a1 + a2) * 10));
             pop();
         }
     }, 
@@ -53,7 +59,9 @@ var cell_type_objects = {
         "neurons": ["Angle"],
         "desc": "The Eye cell sends neurological\ndata about the nearest food\npelet and nearest organism is.",
         "neurons_default": [0],
-        "energy_cost": 0.00002,
+        "energy_cost": (cell) => {
+            return energy_cost;
+        },
         "color": [79, 87, 204],
         "update": (cell) => {
 
@@ -118,7 +126,9 @@ var cell_type_objects = {
         "neurons": [],
         "desc": "Eats food it touches.",
         "neurons_default": [],
-        "energy_cost": 0.00002,
+        "energy_cost": (cell) => {
+            return energy_cost;
+        },
         "color": [204, 139, 10],
         "update": (cell) => {
             let food = engine.foodGrid.getAll(cell.x, cell.y);

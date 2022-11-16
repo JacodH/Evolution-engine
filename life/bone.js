@@ -9,8 +9,6 @@ class Bone {
 
     update() {
         this.a += this.da;
-        this.a = this.a % (Math.PI*2)
-
         this.da *= 0.9;
     }
 }

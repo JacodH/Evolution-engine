@@ -1,6 +1,6 @@
 const MAX_KIDS = 10;
 const MAX_AGE = 100_000;
-const MATURITY_AGE = 30_500
+const MATURITY_AGE = 20_500;
 
 class Organism {
     constructor(n, x, y) {
@@ -37,16 +37,16 @@ class Organism {
             let xpos = x.cells[0].x;
             let ypos = x.cells[0].y;
             
-            let a2 = Math.random()*Math.PI*2
+            let a2 = Math.random()*Math.PI*2;
             
-            xpos += Math.cos(a2) * 300
-            ypos += Math.sin(a2) * 300
+            xpos += Math.cos(a2) * 300;
+            ypos += Math.sin(a2) * 300;
 
             let dx = -(x.cells[0].x - xpos) / 50;
             let dy = -(x.cells[0].y - ypos) / 50;
 
             for (let i = 0; i < x.cells.length; i++) {
-                this.cells.push(new Cell(i, this, xpos, ypos, x.cells[i].a + a, x.cells[i].type));
+                this.cells.push(new Cell(i, this, xpos, ypos, x.cells[i].a, x.cells[i].type));
                 this.cells[i].dx = dx;
                 this.cells[i].dy = dy;
             }
@@ -88,7 +88,7 @@ class Organism {
     }
 
     initBrain() {
-        let inputs = ["Always", "Energy", "Clock"];
+        let inputs = ["Always", "Hunger", "Clock"];
         let outputs = [];
         for (let i = 0; i < this.cells.length; i++) {
             if (cell_type_objects[this.cells[i].type].neuron_type == "Input") {
@@ -184,18 +184,19 @@ class Organism {
 
         if (this.energy <= -1) {
             this.health -= 0.01
+            
+            if (this.health <= 0) {
+                this.die();
+            }
         }
         if (this.energy > 0.1 && this.age < MAX_AGE) {
             this.health += 0.01;
         }
-
-        if (this.health <= 0) {
-            this.die();
-        }
-
         if (this.energy > this.cells.length/2 && this.children < MAX_KIDS && this.age > (MATURITY_AGE * (this.children+1))) {
             this.lay();
         }
+
+
 
         this.brain_timer += 1;
 
@@ -205,7 +206,11 @@ class Organism {
         }
 
         // load inputs
-        let inputs = [1, this.energy/this.cells.length, ((engine.ticks % 100)/50)-1];
+        // constant, hunger, clock
+        // let energy_change = (this.energy - this.brain_energy_last) + (this.health - this.brain_health_last);
+        let hunger = 1-(this.energy/this.cells.length);
+
+        let inputs = [1, hunger, ((engine.ticks % 100)/50)-1];
         for (let i = 0; i < this.cells.length; i++) {
 
             if (cell_type_objects[this.cells[i].type].neuron_type == "Input") {
@@ -235,26 +240,24 @@ class Organism {
         }
 
         for (let i = 0; i < this.bones.length; i++) {
-            let bone = this.bones[i];
-            bone.update();
+            this.bones[i].update()
 
-            let c1 = this.getCell(bone.c1);
-            let c2 = this.getCell(bone.c2);
+            let c1 = this.getCell(this.bones[i].c1);
+            let c2 = this.getCell(this.bones[i].c2);
 
-            let d = bone.d;
-            let a = bone.a;
+            let a = this.bones[i].a;
 
             let midx = (c1.x + c2.x) / 2
             let midy = (c1.y + c2.y) / 2
 
-            let wantedc1x = midx + (Math.cos(a) * (d/2));
-            let wantedc1y = midy + (Math.sin(a) * (d/2));
+            let wantedc1x = midx + (Math.cos(a) * (16));
+            let wantedc1y = midy + (Math.sin(a) * (16));
 
             c1.dx += (c1.x - wantedc1x) * -0.01
             c1.dy += (c1.y - wantedc1y) * -0.01
 
-            let wantedc1x2 = midx + (Math.cos(a+Math.PI) * (d/2));
-            let wantedc1y2 = midy + (Math.sin(a+Math.PI) * (d/2));
+            let wantedc1x2 = midx + (Math.cos(a+Math.PI) * (16));
+            let wantedc1y2 = midy + (Math.sin(a+Math.PI) * (16));
 
             c2.dx += (c2.x - wantedc1x2) * -0.01
             c2.dy += (c2.y - wantedc1y2) * -0.01
@@ -264,14 +267,18 @@ class Organism {
             this.cells[i].update()
         }
 
-        this.updateUI();
-        this.brain.updateUI()
-
+        if (engine.pure_speed == false) {
+            this.updateUI();
+            this.brain.updateUI()
+        }
     }
 
     render() {
         for (let i = 0; i < this.cells.length; i++) {
             this.cells[i].render();
+        }
+        if (engine.selected != undefined && engine.selected.id == this.id) {
+            cam.goto(this.cells[0].x, this.cells[0].y)
         }
     }
 
@@ -294,17 +301,41 @@ class Organism {
         ui.add(new Label("Time of death", this.death));
         ui.add(new Label("Ticks alive", `${this.timeAlive()} Ticks`));
         let stats = new Holder("Stats");
-        stats.add(new Slider("Age", 0, MAX_AGE, this.age, 1));
-        stats.add(new Slider("Children", 0, MAX_KIDS, this.children, 1));
+
+        let general = new Holder("General")
+
+        general.add(new Slider("Age", 0, MAX_AGE, this.age, 1));
+        general.add(new Slider("Children", 0, MAX_KIDS, this.children, 1));
+        general.add(new Slider("Hunger", -1, 1, 0, 0.01));
         if (this.alive == true) {
-            stats.add(new Slider("Energy", -1, this.cells.length, this.energy, 0.01));
-            stats.add(new Slider("Health", 0, 100, this.health, 0.01));
-            stats.add(new Slider("Brain timer", 0, this.brain_mutation_rate, this.brain_timer, 1));
-            stats.add(new Label("Energy last", this.brain_energy_last));
-            stats.add(new Slider("Effiency Diff", -1, 1, (this.energy - this.brain_energy_last) + (this.health - this.brain_health_last), 0.01));
+            general.add(new Slider("Health", 0, 100, this.health, 0.01));
+            general.collapse();
+            stats.add(general);
+            
+            let brain = new Holder("Brain stats");
+            brain.add(new Slider("Brain timer", 0, this.brain_mutation_rate, this.brain_timer, 1));
+            brain.add(new Label("Energy last", this.brain_energy_last));
+            brain.add(new Slider("Effiency Diff", -1, 1, (this.energy - this.brain_energy_last) + (this.health - this.brain_health_last), 0.01));
+            brain.collapse();
+            stats.add(brain)
+            
+            let energy = new Holder("Energy stats");
+            energy.add(new Slider("Energy", -1, this.cells.length, this.energy, 0.000000001));
+            energy.add(new Slider("Energy change per tick", -0.001, 0.001, 0, 0.000000001));
+            energy["Energy change per tick"].fix = 7;
+            for (let i = 0; i < this.cells.length; i++) {
+                let sl = new Slider(`${this.cells[i].type} #${i}`, -0.001, 0.001, 0, 0.000000001)
+                sl.fix = 7;
+                energy.add(sl);
+            }
+            energy.collapse();
+            stats.add(energy)
+
         }
         stats.collapse();
-        ui.add(stats);
+        if (this.alive == true) {
+            ui.add(stats);
+        }
 
         ui.add(new Canvas("Anatomy", (p, org = this) => {
             p.setup = function() {
@@ -386,9 +417,7 @@ class Organism {
         }
 
         
-        
         ui.setPos(((innerWidth/10)*3.5), 300)
-
 
         this.ui = ui;
     }
@@ -399,17 +428,21 @@ class Organism {
         this.ui.Stats.Cells = this.cells.length;
         this.ui["Time of death"].changeVal(this.death);
         this.ui["Ticks alive"].changeVal(`${this.timeAlive()} Ticks`)
-        this.ui.Stats.Energy.changeVal(this.energy);
-        this.ui.Stats.Health.changeVal(this.health);
-        this.ui.Stats.Age.changeVal(this.age);
-        this.ui.Stats.Children.changeVal(this.children);
-        this.ui.Stats["Brain timer"].changeVal(this.brain_timer);
-        this.ui.Stats["Energy last"].changeVal(this.brain_energy_last);
-        this.ui.Stats["Effiency Diff"].changeVal((this.energy - this.brain_energy_last) + (this.health - this.brain_health_last));
+        this.ui.Stats["General"].Health.changeVal(this.health);
+        this.ui.Stats["General"].Age.changeVal(this.age);
+        this.ui.Stats["General"].Children.changeVal(this.children);
+        this.ui.Stats["General"].Hunger.changeVal(1-(this.energy/this.cells.length));
+        this.ui.Stats["Brain stats"]["Brain timer"].changeVal(this.brain_timer);
+        this.ui.Stats["Brain stats"]["Energy last"].changeVal(this.brain_energy_last);
+        this.ui.Stats["Brain stats"]["Effiency Diff"].changeVal((this.energy - this.brain_energy_last) + (this.health - this.brain_health_last));
         
-        if (engine.selected != undefined && engine.selected.id == this.id) {
-            cam.goto(this.cells[0].x, this.cells[0].y)
+        this.ui.Stats["Energy stats"].Energy.changeVal(this.energy);
+        let sum = 0;
+        for (let i = 0; i < this.cells.length; i++) {
+            sum += -cell_type_objects[this.cells[i].type].energy_cost(this.cells[i])
+            this.ui.Stats["Energy stats"][`${this.cells[i].type} #${i}`].changeVal(-cell_type_objects[this.cells[i].type].energy_cost(this.cells[i]))
         }
+        this.ui.Stats["Energy stats"]["Energy change per tick"].changeVal(sum);
     }
 
     closeUI() {

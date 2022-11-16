@@ -119,3 +119,109 @@ class FoodGrid {
         return this.grid[clamp(i, 0, this.grid.length-1)]
     }
 }
+
+/**
+ * API
+ * newObj(pos, dimension)
+ * UpdateObj(obj)
+ * FindNear(location, bounds)
+ * RemoveObj(obj)
+ */
+
+class SpatialHashGrid {
+    constructor(bounds, dimension) {
+        this._bounds = bounds; // [[-1000, -1000], [1000, 1000]] min and max of area 
+        this._dimensions = dimension;// [100, 100]
+        this._cells = new Map();
+    }
+
+    NewObj(position, dimension) {
+        const obj = {
+            position: position,
+            dimension: dimension,
+            indinces: null
+        }
+
+        this._Insert(obj);
+
+        return obj;
+    }
+
+    _Insert(obj) {
+        const [x, y] = obj.position;
+        const [w, h] = obj.dimension;
+
+        const il = this._GetCellIndex([x - w / 2, y - h /2])
+        const i2 = this._GetCellIndex([x + w / 2, y + h /2])
+    
+        obj.indinces = [il, i2];
+
+        for (let x = il[0], xn = i2[0]; x <= xn; ++x) {
+            for (let y = il[1], yn = i2[1]; y <= yn; ++y) {
+                const k = this._Key(x, y);
+
+                if (!(k in this._cells)) {
+                    this._cells[k] = new Set();
+                }
+
+                this._cells[k].add(obj)
+            }
+        }
+    }
+
+    _Key(x, y) {
+        return x + '.' + y
+    }
+
+    _GetCellIndex(pos) {
+        const x = clamp((pos[0] - this._bounds[0]) / (this._bounds[1][0] - this._bounds[0][0]), 0, 1)
+        const y = clamp((pos[1] - this._bounds[1]) / (this._bounds[1][1] - this._bounds[0][0]), 0, 1)
+
+        const xIndex = Math.floor(x * (this._dimensions[0] - 1));
+        const yIndex = Math.floor(y * (this._dimensions[1] - 1));
+    
+        return [xIndex, yIndex];
+    }
+
+    FindNear(position, bounds) {
+        const [x, y] = position;
+        const [w, h] = bounds;
+
+        const il = this._GetCellIndex([x - w / 2, y - h /2])
+        const i2 = this._GetCellIndex([x + w / 2, y + h /2])
+    
+        const objs = new Set();
+
+        for (let x = il[0], xn = i2[0]; x <= xn; ++x) {
+            for (let y = il[1], yn = i2[1]; y <= yn; ++y) {
+                const k = this._Key(x, y);
+
+                if (k in this._cells) {
+                    for (let v of this._cells[k]) {
+                        objs.add(v);
+                    }
+                }
+            }
+        }
+
+        return objs;
+    }
+
+    UpdateObj(obj){
+        this.RemoveObj(obj);
+        this._Insert(obj);
+    }
+
+    RemoveObj(obj) {
+
+        const [il, i2] = obj.indinces;
+
+        for (let x = il[0], xn = i2[0]; x <= xn; ++x) {
+            for (let y = il[1], yn = i2[1]; y <= yn; ++y) {
+                const k = this._Key(x, y);
+
+                this._cells[k].delete(obj);
+            }
+        }
+    }
+}

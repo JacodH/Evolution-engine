@@ -38,9 +38,8 @@ class Cell {
         this.a += this.da;
         this.a = this.a % (Math.PI*2)
 
-        this.org.energy -= cell_type_objects[this.type].energy_cost;
+        this.org.energy -= cell_type_objects[this.type].energy_cost(this);
         cell_type_objects[this.type].update(this);
-
 
         this.updateUI();
 
@@ -76,14 +75,14 @@ class Cell {
     }
 
     rotate(a) {
-        this.a += a;
+        // this.a += a;
         for (let i = 0; i < this.org.bones.length; i++) {
             let bone = this.org.bones[i];
             if (bone.c1 == this.id) {
-                bone.a += a;
+                // bone.a += a;
                 this.org.getCell(bone.c2).a += a;
             }else if (bone.c2 == this.id) {
-                bone.a += a;
+                // bone.a += a;
                 this.org.getCell(bone.c1).a += a;
             }
         }
