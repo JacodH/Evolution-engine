@@ -27,11 +27,11 @@ function setup() {
     angleMode(RADIANS)
 
     engine = new Engine({
-        organisms: 1, // starter organisms
-        org_prod: 4000, // every x ticks make a new organism
-        cells_min: 3, // number of cells in each org
-        cells_max: 6, // number of cells in each org
-        food_prod: 70, // every x ticks add new food if food.length is under max_food
+        organisms: 1,       // starter organisms
+        org_prod: 4000,     // every x ticks make a new organism
+        cells_min: 3,       // number of cells in each org
+        cells_max: 6,       // number of cells in each org
+        food_prod: 70,      // every x ticks add new food if food.length is under max_food
         starter_food: 1000,
         max_food: 1000,
         radius: 6000

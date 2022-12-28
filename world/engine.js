@@ -18,6 +18,7 @@ class Engine {
         this.pure_speed = false;
         this.pure_speed_warning = undefined;
         this.speed = 1;
+        this.food_val = 0.75;
     }
 
     init() {
@@ -41,11 +42,13 @@ class Engine {
         let main = new Holder("Main");
         main.add(new Break());
         main.add(new Label("Organisms", 0))
+        // main.add(new Label("Bio mass", 0, "The total available energy inside of the ecosystem."))
         main.add(new Slider("Food", 0, this.config.max_food, this.foodGrid.length, 1));
 
-        tree = new TabHolder("Evolution Tree (NEW!)", false);
+        tree = new TabHolder("Ancestry Tree");
         tree.add(new Holder("Tree"))
-        tree.Tree.add(new Tree("Evolution tree", this.organism_tree))
+        tree.Tree.add(new Label("DEV", "This feature is going to be changed a lot in the future."))
+        tree.Tree.add(new Tree("Ancestry tree", this.organism_tree))
         tree.setPos((innerWidth/10)*8, 300)
 
         main.add(new Label("Ticks", "0.00k"))
@@ -196,7 +199,7 @@ class Engine {
                 }
             }
 
-            tree.Tree['Evolution tree'].changeVal(this.organism_tree)
+            tree.Tree['Ancestry tree'].changeVal(this.organism_tree)
         }
     }
 
@@ -254,6 +257,17 @@ class Engine {
             ui.Main["Ticks per second"].changeVal(((frameRate() * this.speed) / 1).toFixed())
             ui.Main.Organisms.changeVal(engine.organisms.length)
             ui.Main.Food.changeVal(engine.foodGrid.length)
+
+            // let bio_mass = 0;
+            // bio_mass += this.foodGrid.length * 0.75; // bio mass of food
+
+            // for (let org of this.organisms) {
+            //     bio_mass += org.energy; // energy inside that cell
+            //     bio_mass += org.cells.length * 0.05; // cell flesh
+            // }
+
+
+            // ui.Main["Bio mass"].changeVal(bio_mass)
         }else {
             this.pure_speed_warning["Ticks per second"].changeVal(((frameRate() * this.speed) / 1).toFixed())
         }
@@ -284,5 +298,9 @@ class Engine {
                 }
             }
         }
+    }
+
+    get time() {
+        return `${(this.ticks/1000).toFixed(2)}k`
     }
 }

@@ -1,4 +1,4 @@
-const MAX_KIDS = 10;
+const MAX_KIDS = 3;
 const MAX_AGE = 100_000;
 const MATURITY_AGE = 20_500;
 
@@ -27,6 +27,8 @@ class Organism {
         this.brain_fitness = 0;
 
         this.ancestry = ["INIT"]
+
+        this.neural_mutations = [];
 
         if (n == "Copy") {
             this.cells = [];
@@ -123,11 +125,14 @@ class Organism {
         
         this.brain = new Genome([inputs, outputs]);
 
-
-        // minor some mutation 
+        // some minor mutation 
         for (let i = 0; i < neural_mutations.length; i++) {
             if (Math.random() < neural_mutations[i].chance + 1) {
-                neural_mutations[i].func(this.brain);
+                this.neural_mutations.push({
+                    data: neural_mutations[i].func(this.brain),
+                    time: engine.time,
+                    mr: 1
+                });
             }
         }
     }
@@ -172,7 +177,11 @@ class Organism {
 
         for (let i = 0; i < neural_mutations.length; i++) {
             if (Math.random() < neural_mutations[i].chance + n) {
-                neural_mutations[i].func(this.brain);
+                this.neural_mutations.push({
+                    data: neural_mutations[i].func(this.brain),
+                    time: engine.time,
+                    mr: n
+                });
             }
         }
     }
@@ -195,8 +204,6 @@ class Organism {
         if (this.energy > this.cells.length/2 && this.children < MAX_KIDS && this.age > (MATURITY_AGE * (this.children+1))) {
             this.lay();
         }
-
-
 
         this.brain_timer += 1;
 
@@ -271,6 +278,18 @@ class Organism {
             this.updateUI();
             this.brain.updateUI()
         }
+
+        let food = engine.foodGrid.getAll(this.cells[0].x, this.cells[0].y);
+        for (let c = 0; c < food.length; c++) {
+            for (let f = 0; f < food[c].length; f++) {
+                if (pt(this.cells[0].x, this.cells[0].y, food[c][f].x, food[c][f].y) < 50) {
+                    food[c].splice(f, 1);
+                    engine.foodGrid.length -= 1;
+                    this.energy += engine.food_val;
+                    return
+                }
+            }
+        }        
     }
 
     render() {
@@ -321,10 +340,10 @@ class Organism {
             
             let energy = new Holder("Energy stats");
             energy.add(new Slider("Energy", -1, this.cells.length, this.energy, 0.000000001));
-            energy.add(new Slider("Energy change per tick", -0.001, 0.001, 0, 0.000000001));
-            energy["Energy change per tick"].fix = 7;
+            energy.add(new Slider("Energy change per tick x10", -0.001, 0.001, 0, 0.000000001));
+            energy["Energy change per tick x10"].fix = 7;
             for (let i = 0; i < this.cells.length; i++) {
-                let sl = new Slider(`${this.cells[i].type} #${i}`, -0.001, 0.001, 0, 0.000000001)
+                let sl = new Slider(`${this.cells[i].type} #${i} x10`, -0.001, 0.001, 0, 0.000000001)
                 sl.fix = 7;
                 energy.add(sl);
             }
@@ -410,9 +429,19 @@ class Organism {
         ui.add(new Button("Open Brain", () => {
             this.brain.openUI()
         }))
+        ui.add(new Button("Open Neural mutations", () => {
+            let ui = new TabHolder("Organism #"+this.id+" Neural Mutations");
+            ui.add(new Table("Mutations", ["Index", "Desc", "Time", "Mutation rate"]))
+            for (let i = 0; i < this.neural_mutations.length; i++) {
+                ui.Mutations.addRow([i, this.neural_mutations[i].data, this.neural_mutations[i].time, this.neural_mutations[i].mr])
+            }
+        }))
         if (this.alive == true) {
             ui.add(new Button("Feed", () => {
                 this.energy += 0.75;
+            }))
+            ui.add(new Button("Lay", () => {
+                this.lay();
             }))
         }
 
@@ -440,9 +469,9 @@ class Organism {
         let sum = 0;
         for (let i = 0; i < this.cells.length; i++) {
             sum += -cell_type_objects[this.cells[i].type].energy_cost(this.cells[i])
-            this.ui.Stats["Energy stats"][`${this.cells[i].type} #${i}`].changeVal(-cell_type_objects[this.cells[i].type].energy_cost(this.cells[i]))
+            this.ui.Stats["Energy stats"][`${this.cells[i].type} #${i} x10`].changeVal(-cell_type_objects[this.cells[i].type].energy_cost(this.cells[i]) * 10)
         }
-        this.ui.Stats["Energy stats"]["Energy change per tick"].changeVal(sum);
+        this.ui.Stats["Energy stats"]["Energy change per tick x10"].changeVal(sum);
     }
 
     closeUI() {
@@ -453,5 +482,12 @@ class Organism {
         this.brain.closeUI();
         this.ui.close();
         this.ui = undefined;
+    }
+
+    get x() {
+        return this.cells[0].x
+    }
+    get y() {
+        return this.cells[0].y
     }
 }

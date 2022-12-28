@@ -21,9 +21,13 @@ function addNeuralMutation(name, desc, chance, func) {
 
 addNeuralMutation("Change bias", "Mutate the bias of any neuron", -0.5, (brain) => {
     let num  = Math.floor(rng(0, brain.nodes.length))
+    let before = brain.nodes[num].bias;
+
+    if (!before) {return false}
+
     brain.nodes[num].bias = clamp(rng(-0.1, 0.1) + brain.nodes[num].bias, NEAT_HP.VALUE.min, NEAT_HP.VALUE.max);
 
-    return true;
+    return `Bias on neuron #${num} was changed from ${before.toFixed(2)} to ${brain.nodes[num].bias.toFixed(2)}`;
 })
 addNeuralMutation("Add (+) connection", "Add a positive connection", -0.5, (brain) => {
     let possible = [];
@@ -35,9 +39,15 @@ addNeuralMutation("Add (+) connection", "Add a positive connection", -0.5, (brai
     }
 
     if (possible.length > 0) {
-        brain.connections[possible[Math.floor(rng(0, possible.length))]].weight = 1;
+        let num = Math.floor(rng(0, possible.length))
 
-        return true;
+        let connection = brain.connections[possible[num]];
+
+        let before = connection.weight
+
+        brain.connections[possible[num]].weight = 1;
+
+        return `Weight on connection ${connection.innovation_id} was changed from ${before} to 1`;
     }
 
     return false;
@@ -52,9 +62,15 @@ addNeuralMutation("Add (-) connection", "Add a negative connection", -0.5, (brai
     }
 
     if (possible.length > 0) {
-        brain.connections[possible[Math.floor(rng(0, possible.length))]].weight = -1;
+        let num = Math.floor(rng(0, possible.length))
 
-        return true;
+        let connection = brain.connections[possible[num]];
+
+        let before = connection.weight
+
+        brain.connections[possible[num]].weight = -1;
+
+        return `Weight on connection ${connection.innovation_id} was changed from ${before} to -1`;
     }
 
     return false;
@@ -69,20 +85,31 @@ addNeuralMutation("Zero connection", "Zero a connection", -0.5, (brain) => {
     }
 
     if (possible.length > 0) {
-        brain.connections[possible[Math.floor(rng(0, possible.length))]].weight = 0;
-        return true;
+        let num = Math.floor(rng(0, possible.length))
+
+        let connection = brain.connections[possible[num]];
+
+        let before = connection.weight
+
+        brain.connections[possible[num]].weight = 0;
+
+        return `Weight on connection ${connection.innovation_id} was changed from ${before} to 0`;
     }
 
     return false;
 })
 
 addBioMutation("Change type", "Change the type of a singular cell.", 0.1, (org) => {
-    let num = Math.floor(rng(0, org.cells.length));
-    let newType = cell_types[Math.floor(Math.random()*cell_types.length)]
-    org.cells[num].type = newType;
-    org.cells[num].neural_vals = [...cell_type_objects[newType].neurons_default];
+    // let num = Math.floor(rng(0, org.cells.length));
+    // let newType = cell_types[Math.floor(Math.random()*cell_types.length)]
+    // org.cells[num].type = newType;
+    // org.cells[num].neural_vals = [...cell_type_objects[newType].neurons_default];
 
-    org.initBrain();
+    // // org.brain.validate();
+
+    // // org.initBrain();
+
+    return false;
 })
 
 addBioMutation("Bone structure", "Change the angle of a bone.", 0.25, (org) => {

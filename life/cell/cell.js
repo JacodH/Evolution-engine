@@ -46,7 +46,8 @@ class Cell {
     }
 
     render() {
-        fill(cell_type_objects[this.type].color);
+        // console.log(cell_type_objects[this.type].color)
+        fill(cell_type_objects[this.type].color.concat(map(this.org.energy, -1, this.org.cells.length, 100, 255)));
         if (this.org.selected == true) {
             stroke(255, 255, 0);
         }else {
